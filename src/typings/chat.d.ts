@@ -3,6 +3,7 @@ declare namespace Chat {
 	interface Chat {
 		dateTime: string
 		text: string
+		imageUrl?: string
 		inversion?: boolean
 		error?: boolean
 		loading?: boolean
@@ -13,7 +14,8 @@ declare namespace Chat {
 	interface History {
 		title: string
 		isEdit: boolean
-		uuid: number
+		uuid: number,
+		isDraw: boolean
 	}
 
 	interface ChatState {

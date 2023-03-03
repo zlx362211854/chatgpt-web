@@ -30,12 +30,21 @@ router.post('/chat-process', async (req, res) => {
   res.setHeader('Content-type', 'application/octet-stream')
 
   try {
-    const { prompt, options = {} } = req.body as { prompt: string; options?: ChatContext }
+    const { prompt, options = {}, isDraw } = req.body as { prompt: string; options?: ChatContext; isDraw?: boolean }
     let firstChunk = true
-    await chatReplyProcess(prompt, options, (chat: ChatMessage) => {
-      res.write(firstChunk ? JSON.stringify(chat) : `\n${JSON.stringify(chat)}`)
-      firstChunk = false
-    })
+    if (isDraw) {
+      const { data } = await chatReplyProcess(prompt, options, isDraw)
+      res.status(200).json({
+        status: 'Success',
+        data: { url: data.url },
+      })
+    }
+    else {
+      await chatReplyProcess(prompt, options, isDraw, (chat: ChatMessage) => {
+        res.write(firstChunk ? JSON.stringify(chat) : `\n${JSON.stringify(chat)}`)
+        firstChunk = false
+      })
+    }
   }
   catch (error) {
     res.write(JSON.stringify(error))

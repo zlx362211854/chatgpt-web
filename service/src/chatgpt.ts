@@ -2,6 +2,7 @@ import * as dotenv from 'dotenv'
 import 'isomorphic-fetch'
 import type { ChatMessage, SendMessageOptions } from 'chatgpt'
 import { ChatGPTAPI, ChatGPTUnofficialProxyAPI } from 'chatgpt'
+import { Configuration, OpenAIApi } from 'openai'
 import { SocksProxyAgent } from 'socks-proxy-agent'
 import fetch from 'node-fetch'
 import { sendResponse } from './utils'
@@ -17,7 +18,7 @@ if (!process.env.OPENAI_API_KEY && !process.env.OPENAI_ACCESS_TOKEN)
   throw new Error('Missing OPENAI_API_KEY or OPENAI_ACCESS_TOKEN environment variable')
 
 let api: ChatGPTAPI | ChatGPTUnofficialProxyAPI
-
+let openai: OpenAIApi
 // To use ESM in CommonJS, you can use a dynamic import
 (async () => {
   // More Info: https://github.com/transitive-bullshit/chatgpt-api
@@ -27,9 +28,9 @@ let api: ChatGPTAPI | ChatGPTUnofficialProxyAPI
       apiKey: process.env.OPENAI_API_KEY,
       debug: false,
     }
-
     api = new ChatGPTAPI({ ...options })
     apiModel = 'ChatGPTAPI'
+    openai = new OpenAIApi(new Configuration({ apiKey: process.env.OPENAI_API_KEY }))
   }
   else {
     const options: ChatGPTUnofficialProxyAPIOptions = {
@@ -83,6 +84,7 @@ async function chatReply(
 async function chatReplyProcess(
   message: string,
   lastContext?: { conversationId?: string; parentMessageId?: string },
+  isDraw?: boolean,
   process?: (chat: ChatMessage) => void,
 ) {
   if (!message)
@@ -90,18 +92,25 @@ async function chatReplyProcess(
 
   try {
     let options: SendMessageOptions = { timeoutMs }
-
     if (lastContext)
       options = { ...lastContext }
-
-    const response = await api.sendMessage(message, {
-      ...options,
-      onProgress: (partialResponse) => {
-        process?.(partialResponse)
-      },
-    })
-
-    return sendResponse({ type: 'Success', data: response })
+    if (isDraw) {
+      const response = await openai.createImage({
+        prompt: message,
+        n: 1,
+        size: '512x512',
+      })
+      return sendResponse({ type: 'Success', data: { url: response.data?.data?.[0]?.url } })
+    }
+    else {
+      const response = await api.sendMessage(message, {
+        ...options,
+        onProgress: (partialResponse) => {
+          process?.(partialResponse)
+        },
+      })
+      return sendResponse({ type: 'Success', data: response })
+    }
   }
   catch (error: any) {
     return sendResponse({ type: 'Fail', message: error.message })

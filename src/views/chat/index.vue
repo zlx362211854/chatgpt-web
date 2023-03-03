@@ -23,10 +23,10 @@ const { addChat, updateChat, updateChatSome, getChatByUuidAndIndex } = useChat()
 const { scrollRef, scrollToBottom } = useScroll()
 
 const { uuid } = route.params as { uuid: string }
-
+const currentChatHistory = computed(() => chatStore.getChatHistoryByCurrentActive)
 const dataSources = computed(() => chatStore.getChatByUuid(+uuid))
 const conversationList = computed(() => dataSources.value.filter(item => (!item.inversion && !item.error)))
-
+const isDraw = currentChatHistory.value?.isDraw
 const prompt = ref<string>('')
 const loading = ref<boolean>(false)
 
@@ -86,6 +86,7 @@ async function onConversation() {
       prompt: message,
       options,
       signal: controller.signal,
+      isDraw,
       onDownloadProgress: ({ event }) => {
         const xhr = event.target
         const { responseText } = xhr
@@ -102,6 +103,7 @@ async function onConversation() {
             {
               dateTime: new Date().toLocaleString(),
               text: data.text ?? '',
+              imageUrl: data?.data?.url,
               inversion: false,
               error: false,
               loading: false,
@@ -202,6 +204,7 @@ async function onRegenerate(index: number) {
     await fetchChatAPIProcess<Chat.ConversationResponse>({
       prompt: message,
       options,
+      isDraw,
       signal: controller.signal,
       onDownloadProgress: ({ event }) => {
         const xhr = event.target
@@ -369,6 +372,7 @@ onUnmounted(() => {
               :key="index"
               :date-time="item.dateTime"
               :text="item.text"
+              :url="item.imageUrl"
               :inversion="item.inversion"
               :error="item.error"
               :loading="item.loading"

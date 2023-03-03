@@ -10,6 +10,7 @@ export interface HttpOption {
   signal?: GenericAbortSignal
   beforeRequest?: () => void
   afterRequest?: () => void
+  isDraw?: boolean
 }
 
 export interface Response<T = any> {

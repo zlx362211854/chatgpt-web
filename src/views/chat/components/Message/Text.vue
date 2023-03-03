@@ -9,6 +9,7 @@ interface Props {
   inversion?: boolean
   error?: boolean
   text?: string
+  url?: string
   loading?: boolean
 }
 
@@ -54,6 +55,8 @@ const text = computed(() => {
     return marked(value)
   return value
 })
+// eslint-disable-next-line no-console
+console.log(props.loading, 'loading')
 </script>
 
 <template>
@@ -63,8 +66,13 @@ const text = computed(() => {
     </template>
     <template v-else>
       <div class="leading-relaxed break-all">
-        <div v-if="!inversion" class="markdown-body" v-html="text" />
-        <div v-else class="whitespace-pre-wrap" v-text="text" />
+        <div v-if="url">
+          <img :src="url" alt="" srcset="">
+        </div>
+        <div v-else>
+          <div v-if="!inversion" class="markdown-body" v-html="text" />
+          <div v-else class="whitespace-pre-wrap" v-text="text" />
+        </div>
       </div>
     </template>
   </div>

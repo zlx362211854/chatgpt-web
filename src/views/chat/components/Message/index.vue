@@ -9,6 +9,7 @@ import { useIconRender } from '@/hooks/useIconRender'
 interface Props {
   dateTime?: string
   text?: string
+  url?: string
   inversion?: boolean
   error?: boolean
   loading?: boolean
@@ -80,6 +81,7 @@ function handleRegenerate() {
           :inversion="inversion"
           :error="error"
           :text="text"
+          :url="url"
           :loading="loading"
         />
         <div class="flex flex-col">

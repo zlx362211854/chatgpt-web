@@ -1,7 +1,8 @@
 <script setup lang='ts'>
 import type { CSSProperties } from 'vue'
 import { computed, watch } from 'vue'
-import { NButton, NLayoutSider } from 'naive-ui'
+import { NButton, NLayoutSider, NPopselect } from 'naive-ui'
+import type { SelectMixedOption } from 'naive-ui/es/select/src/interface'
 import List from './List.vue'
 import Footer from './Footer.vue'
 import { useAppStore, useChatStore } from '@/store'
@@ -12,10 +13,19 @@ const chatStore = useChatStore()
 
 const { isMobile } = useBasicLayout()
 
+const typeOptions: SelectMixedOption[] = [{
+  label: 'Chat',
+  value: 'Chat',
+},
+{
+  label: 'Draw',
+  value: 'Draw',
+}]
+
 const collapsed = computed(() => appStore.siderCollapsed)
 
-function handleAdd() {
-  chatStore.addHistory({ title: 'New Chat', uuid: Date.now(), isEdit: false })
+function handleAdd(type: string) {
+  chatStore.addHistory({ title: `New ${type}`, uuid: Date.now(), isEdit: false, isDraw: type?.toLowerCase() === 'draw' })
 }
 
 function handleUpdateCollapsed() {
@@ -59,9 +69,15 @@ watch(
     <div class="flex flex-col h-full">
       <main class="flex flex-col flex-1 min-h-0">
         <div class="p-4">
-          <NButton dashed block @click="handleAdd">
-            New chat
-          </NButton>
+          <NPopselect
+            :options="typeOptions"
+            trigger="click"
+            @change="(type) => handleAdd(type)"
+          >
+            <NButton dashed block>
+              New
+            </NButton>
+          </NPopselect>
         </div>
         <div class="flex-1 min-h-0 pb-4 overflow-hidden">
           <List />
